@@ -1,0 +1,119 @@
+@startuml classes
+title Boutique en ligne — Diagramme de classes
+
+skinparam classAttributeIconSize 0
+
+interface Configuration {
+    +getSeuilGratuiteCents() : int
+    +getPoidsMaxGrammes() : int
+}
+
+enum AppConfig << Singleton >> {
+    -INSTANCE : AppConfig
+    {static} +getInstance() : AppConfig
+    {static} +override(configuration : Configuration) : void
+    {static} +reset() : void
+}
+
+class Produit {
+    -reference : String
+    -prixCents : int
+    -poidsGrammes : int
+    +getReference() : String
+    +getPrixCents() : int
+    +getPoidsGrammes() : int
+}
+
+class Catalogue {
+    -produits : List<Produit>
+    +ajouter(produit : Produit) : void
+    +contient(produit : Produit) : boolean
+    +produits() : List<Produit>
+}
+
+class LigneCommande {
+    -produit : Produit
+    -quantite : int
+    +getSousTotalCents() : int
+    +getPoidsGrammes() : int
+}
+
+enum EtatCommande {
+    BROUILLON
+    VALIDEE
+}
+
+class Commande {
+    -clientId : String
+    -configuration : Configuration
+    -lignes : List<LigneCommande>
+    -strategie : StrategieLivraison
+    -etat : EtatCommande
+    -totalValideCents : int
+    +ajouterProduit(produit : Produit, quantite : int) : void
+    +changerLivraison(strategie : StrategieLivraison) : void
+    +getSousTotalCents() : int
+    +getPoidsTotalGrammes() : int
+    +getFraisLivraisonCents() : int
+    +getTotalCents() : int
+    +getTotalValideCents() : int
+    +valider(notifier : Notifier) : void
+    +isValidee() : boolean
+}
+
+class RefusValidationException
+
+interface StrategieLivraison << Strategy >> {
+    +calculerFrais(poidsGrammes : int, sousTotalCents : int) : int
+}
+
+abstract class AbstractStrategieLivraison {
+    #calculer(poidsGrammes : int, sousTotalCents : int) : int
+}
+
+class StrategieStandard {
+    -FRAIS_STANDARD = 500
+    -configuration : Configuration
+}
+
+class StrategieExpress {
+    -FRAIS_BASE = 1000
+    -FRAIS_PAR_KG_COMMENCE = 200
+}
+
+class StrategieRetrait
+
+interface Notifier {
+    +notifier(clientId : String, totalCents : int) : void
+}
+
+class NotifierConsole
+
+Catalogue "0..*" o-- "0..*" Produit : agrège
+Commande "1" *-- "1..*" LigneCommande : compose
+LigneCommande "1..*" --> "1" Produit : référence
+
+Commande --> "1" StrategieLivraison : utilise
+Commande --> "1" Configuration : dépend
+Commande --> "1" Notifier : dépend
+
+AppConfig ..|> Configuration : implémente
+Notifier <|.. NotifierConsole : implémente
+StrategieLivraison <|.. AbstractStrategieLivraison : implémente
+AbstractStrategieLivraison <|-- StrategieStandard
+AbstractStrategieLivraison <|-- StrategieExpress
+AbstractStrategieLivraison <|-- StrategieRetrait
+Commande --> EtatCommande
+RefusValidationException ..> RuntimeException : dérive
+
+note top of AppConfig
+  Patron Singleton : une configuration par chargeur de classes,
+  substituable en test via override() sans accès global.
+end note
+
+note top of StrategieLivraison
+  Patron Strategy : frais par délégation (OCP), un mode de plus
+  est une sous-classe sans toucher le noyau de validation.
+end note
+
+@enduml

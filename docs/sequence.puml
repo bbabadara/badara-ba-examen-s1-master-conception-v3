@@ -1,0 +1,51 @@
+@startuml validation
+title Validation d'une commande — calcul délégué, notification et refus métier
+
+actor "Client" as Client
+participant ": Commande" as Cmd
+participant "config : Configuration" as Cfg
+participant "strategie : StrategieLivraison" as St
+participant "notifier : Notifier" as Not
+
+Client -> Cmd : valider(notifier)
+activate Cmd
+
+Cmd -> Cmd : verifierCommandeModifiable()\n(état == BROUILLON ?)
+alt état != BROUILLON
+  Cmd --> Client : IllegalStateException
+  note right : seconde validation ou\nmodification interdite
+end
+
+Cmd -> Cmd : lignes vide ?
+alt commande vide
+  Cmd --> Client : RefusValidationException
+  note right : aucune notification
+end
+
+Cmd -> Cfg : getPoidsMaxGrammes()
+activate Cfg
+Cfg --> Cmd : 30 000
+deactivate Cfg
+
+Cmd -> Cmd : poidsTotal > max ?
+alt poids maximal dépassé
+  Cmd --> Client : RefusValidationException
+  note right : état BROUILLON conservée, aucune notification
+else commande acceptable
+  Cmd -> Cmd : sousTotal = getSousTotalCents()
+  Cmd -> St : calculerFrais(poidsTotal, sousTotal)
+  activate St
+  St --> Cmd : fraisLivraison
+  deactivate St
+  Cmd -> Cmd : total = sousTotal + fraisLivraison
+  Cmd -> Cmd : totalValideCents = total, état = VALIDEE
+  Cmd -> Not : notifier(clientId, totalValideCents)
+  activate Not
+  Not --> Cmd
+  deactivate Not
+  Cmd --> Client : total validé
+end
+
+deactivate Cmd
+
+@enduml
