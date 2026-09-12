@@ -44,7 +44,7 @@ public final class Demo {
         afficher("total en Retrait", commande);
 
         commande.changerLivraison(new StrategieStandard(config));
-        afficher("total en Standard (commande de 25 460 c < seuil de gratuité)", commande);
+        afficher("total en Standard (29 460 c ≥ seuil de gratuité, frais offerts)", commande);
 
         commande.valider(new NotifierConsole());
         System.out.println("validée : " + commande.isValidee()
