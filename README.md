@@ -48,7 +48,6 @@
 
 ## Remise
 
-- J'ai travaillé sur une branche `dev` et je l'ai intégrée sur `main`
-  (merge sans fast-forward), le tag annoté `v1.0.0` est posé sur le résultat.
+- J'ai travaillé sur une branche `dev` et je l'ai intégrée sur `main` , le tag annoté `v1.0.0` est posé sur le résultat.
 - Résultats de tests réellement observés : `Tests run: 11, Failures: 0,
   Errors: 0` (BUILD SUCCESS).
