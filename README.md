@@ -1,4 +1,4 @@
-# Examen — BA Badara (v3)
+# Examen — BA Badara 
 
 ## Environnement
 
